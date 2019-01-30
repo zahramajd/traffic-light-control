@@ -96,3 +96,5 @@ def convert_actions(phases):
 
 info, states, phases = load_data()
 actions = convert_actions(phases)
+
+#test
