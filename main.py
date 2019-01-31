@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from sklearn import preprocessing
 
-#TODO: split train & test
 #TODO: LSTM
 #TODO: test
 
@@ -99,7 +98,23 @@ def normalize(raw_info):
     info = min_max_scaler.fit_transform(raw_info)
     return info
 
+def split_data(data):
+    
+    train_percent = 0.8
+
+    m = len(data)
+
+    train = data[:int(train_percent * m)]
+    test = data[int(train_percent * m):]
+
+    return train, test
+
 
 raw_info, states, phases = load_data()
 actions = convert_actions(phases)
 info = normalize(raw_info)
+
+
+info_train, info_test = split_data(info)
+states_train, states_test = split_data(states)
+actions_train, actions_test = split_data(actions)
