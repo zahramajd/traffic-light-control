@@ -1,8 +1,8 @@
 import tensorflow as tf
 import pandas as pd
 import numpy as np
+from sklearn import preprocessing
 
-#TODO: normalize
 #TODO: split train & test
 #TODO: LSTM
 #TODO: test
@@ -94,7 +94,12 @@ def convert_actions(phases):
 
     return actions
 
-info, states, phases = load_data()
-actions = convert_actions(phases)
+def normalize(raw_info):
+    min_max_scaler = preprocessing.MinMaxScaler()
+    info = min_max_scaler.fit_transform(raw_info)
+    return info
 
-#test
+
+raw_info, states, phases = load_data()
+actions = convert_actions(phases)
+info = normalize(raw_info)
