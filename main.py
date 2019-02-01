@@ -1,10 +1,9 @@
 import tensorflow as tf
+from tensorflow.contrib import rnn
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
-
-#TODO: LSTM
-#TODO: test
+from matplotlib import pyplot
 
 
 def load_data():
@@ -100,7 +99,7 @@ def normalize(raw_info):
 
 def split_data(data):
     
-    train_percent = 0.8
+    train_percent = 0.9
 
     m = len(data)
 
@@ -118,3 +117,36 @@ info = normalize(raw_info)
 info_train, info_test = split_data(info)
 states_train, states_test = split_data(states)
 actions_train, actions_test = split_data(actions)
+
+
+def myrun(info_train):
+    n_input = 14
+    n_hidden = 512
+    state_size = 24
+
+    weights = {
+        'out': tf.Variable(tf.random_normal([n_hidden, state_size]))
+    }
+    biases = {
+        'out': tf.Variable(tf.random_normal([state_size]))
+    }
+
+    training_dataset = tf.cast(info_train, tf.float32)
+
+    x = tf.reshape(training_dataset, [-1, n_input])
+    x = tf.split(x,n_input,1)
+    rnn_cell = rnn.BasicLSTMCell(n_hidden)
+    outputs, states1 = rnn.static_rnn(rnn_cell, x, dtype=tf.float32)
+
+    return tf.matmul(outputs[-1], weights['out']) + biases['out']
+
+res = myrun(info_train)
+
+# prediction = tf.nn.softmax(res)
+
+with tf.Session() as sess:
+
+    sess.run(tf.global_variables_initializer())
+    logits = sess.run([res])
+
+    print(logits[0][-1])
