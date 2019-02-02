@@ -5,3 +5,4 @@ DataSet-3
 *.h5
 *.json
 *.hdf5
+*.csv

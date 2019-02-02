@@ -10,15 +10,40 @@ from pandas import DataFrame
 from pandas import concat
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.models import load_model
+import glob
+import os
 
 
-#TODO: merge files
+
 #TODO: find best n, neuron
-#TODO: save result
-#TODO: third model test
+
+#TODO: predicted value of 1&2
+#TODO: run & save 3 model
+#TODO: prepare test case to run on model
 
 
-def load_data():
+def load_data(path):
+
+    data = pd.DataFrame()
+    files = glob.glob(path+'/*.csv')
+    # for file in files:
+    #     d = pd.read_csv(file)
+    #     print(d.shape)
+    #     print(data.shape)
+    #     data = pd.concat([data,d])
+    #     print(data.shape)
+    #     print('--------------')
+
+    # list_ = []
+    # for file in files:
+    #     print(file)
+    #     df = pd.read_csv(file)
+    #     print(df.shape)
+    #     list_.append(df)
+
+    # data = pd.concat(list_, axis = 0)
+    # print(data.shape)
+
     data = pd.read_csv("./DataSet-1/dataset536.csv")
     info = data.iloc[:,0:8]
     states = data.iloc[:,8:9]
@@ -249,6 +274,7 @@ def state_action_state_action_n_timestep(info, actions, states, timesteps):
     data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
     label = pd.concat([DataFrame(states), DataFrame(actions)], axis=1)
 
+
     cols = []
     for i in range(timesteps, 0, -1):
         cols.append(data.shift(i))
@@ -270,18 +296,19 @@ def state_action_state_action_n_timestep(info, actions, states, timesteps):
     train_X = train[:, :n_obs]
     test_X = test[:, :n_obs]
 
-    train_y = train[:, -2]
-    test_y = test[:, -2]
+    train_y = train[:, -2:]
+    test_y = test[:, -2:]
 
     train_X = train_X.reshape((train_X.shape[0], timesteps, n_features))
     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
+
     model = Sequential()
     model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-    model.add(Dense(1))
+    model.add(Dense(2))
     model.compile(loss='mae', optimizer='adam')
 
-    history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
@@ -314,15 +341,20 @@ def load_saved_model(name):
     return load_model
 
 def save_predicted_result():
+
+    yhat = model.predict(test_X)
+    np.savetxt("foo.csv", yhat, delimiter=",")
+
     return
 
 
-raw_info, states, phases = load_data()
+# load_data(path='./DataSet-1')
+raw_info, states, phases = load_data(path='./DataSet-1')
 actions = convert_actions(phases)
 info = normalize(raw_info)
 
 
-model = state_action_state_n_timestep(info, actions, states, timesteps = 10)
+model = state_action_state_action_n_timestep(info, actions, states, timesteps = 10)
 
-save_model(model, name='x')
-loaded_model = load_model(name='x')
+# save_model(model, name='x')
+# loaded_model = load_model(name='x')
