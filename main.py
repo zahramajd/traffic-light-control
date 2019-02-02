@@ -8,6 +8,15 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 from pandas import DataFrame
 from pandas import concat
+from tensorflow.keras.models import model_from_json
+from tensorflow.keras.models import load_model
+
+
+#TODO: merge files
+#TODO: find best n, neuron
+#TODO: save result
+#TODO: third model test
+
 
 def load_data():
     data = pd.read_csv("./DataSet-1/dataset536.csv")
@@ -110,16 +119,6 @@ def split_data(data):
     test = data[int(train_percent * m):]
 
     return train, test
-
-
-raw_info, states, phases = load_data()
-actions = convert_actions(phases)
-info = normalize(raw_info)
-
-# info_train, info_test = split_data(info)
-# states_train, states_test = split_data(states)
-# actions_train, actions_test = split_data(actions)
-
 
 def state_state_1_timestep():
     train_X = info_train[:, :-1]
@@ -233,12 +232,16 @@ def state_action_state_n_timestep(info, actions, states, timesteps):
     model.add(Dense(1))
     model.compile(loss='mae', optimizer='adam')
 
-    history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
-    pyplot.plot(history.history['loss'], label='train')
-    pyplot.plot(history.history['val_loss'], label='test')
-    pyplot.legend()
-    pyplot.show()
+    # pyplot.plot(history.history['loss'], label='train')
+    # pyplot.plot(history.history['val_loss'], label='test')
+    # pyplot.legend()
+    # pyplot.show()
+
+    save_model(model, name='state_action_state')
+    x=load_saved_model(name='state_action_state')
+    print(x)
 
     return
 
@@ -291,4 +294,34 @@ def state_action_state_action_n_timestep(info, actions, states, timesteps):
 
     return
 
-state_action_state_action_n_timestep(info, actions, states, timesteps = 10)
+def save_model(model, name):
+    model_json = model.to_json()
+
+    with open(name + ".json", "w") as json_file:
+        json_file.write(model_json)
+
+    model.save_weights(name + ".h5")
+    return
+
+def load_saved_model(name):
+
+    # load json and create model
+    json_file = open(name+'.json', 'r')
+
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+
+    # load weights into new model
+    loaded_model.load_weights(name + ".h5")
+
+    return load_model
+
+def save_predicted_result():
+    return
+
+
+raw_info, states, phases = load_data()
+actions = convert_actions(phases)
+info = normalize(raw_info)
+state_action_state_n_timestep(info, actions, states, timesteps = 10)

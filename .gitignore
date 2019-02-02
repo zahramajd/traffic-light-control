@@ -2,3 +2,6 @@
 DataSet-1
 DataSet-2
 DataSet-3
+*.h5
+*.json
+*.hdf5
