@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from sklearn import preprocessing
 from matplotlib import pyplot
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import LSTM
 
 
 def load_data():
@@ -119,34 +122,25 @@ states_train, states_test = split_data(states)
 actions_train, actions_test = split_data(actions)
 
 
-def myrun(info_train):
-    n_input = 14
-    n_hidden = 512
-    state_size = 24
+train_X = info_train[:, :-1]
+test_X = info_test[:, :-1]
 
-    weights = {
-        'out': tf.Variable(tf.random_normal([n_hidden, state_size]))
-    }
-    biases = {
-        'out': tf.Variable(tf.random_normal([state_size]))
-    }
+train_y = states_train
+test_y = states_test
 
-    training_dataset = tf.cast(info_train, tf.float32)
+train_X = train_X.reshape((train_X.shape[0], 1, train_X.shape[1]))
+test_X = test_X.reshape((test_X.shape[0], 1, test_X.shape[1]))
+print(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
 
-    x = tf.reshape(training_dataset, [-1, n_input])
-    x = tf.split(x,n_input,1)
-    rnn_cell = rnn.BasicLSTMCell(n_hidden)
-    outputs, states1 = rnn.static_rnn(rnn_cell, x, dtype=tf.float32)
-
-    return tf.matmul(outputs[-1], weights['out']) + biases['out']
-
-res = myrun(info_train)
-
-# prediction = tf.nn.softmax(res)
-
-with tf.Session() as sess:
-
-    sess.run(tf.global_variables_initializer())
-    logits = sess.run([res])
-
-    print(logits[0][-1])
+# design network
+model = Sequential()
+model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
+model.add(Dense(1))
+model.compile(loss='mae', optimizer='adam')
+# fit network
+history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+# plot history
+pyplot.plot(history.history['loss'], label='train')
+pyplot.plot(history.history['val_loss'], label='test')
+pyplot.legend()
+pyplot.show()
