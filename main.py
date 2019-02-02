@@ -144,35 +144,29 @@ def state_state_1_timestep():
     pyplot.legend()
     pyplot.show()
 
-def state_state_n_timestep(info, states):
+def state_state_n_timestep(info, states, timesteps):
 
-    timesteps = 10
     n_features = 8
-
     n_obs = timesteps * n_features
 
     data = DataFrame(info)
     label = DataFrame(states)
 
     cols = []
-
     for i in range(timesteps, 0, -1):
         cols.append(data.shift(i))
-
 
     for i in range(0,1):
         cols.append(label.shift(-i))
 
     data = concat(cols, axis=1)
     data.dropna(inplace=True)
-
     data = data.values
 
+    # split to train & test
     train_percent = 0.9
-
     m = len(data)
     point = int(train_percent * m) 
-
     train = data[:point, :]
     test = data[point:, :]
 
@@ -182,18 +176,66 @@ def state_state_n_timestep(info, states):
     train_y = train[:, -1]
     test_y = test[:, -1]
 
-    # reshape input to be 3D [samples, timesteps, features]
     train_X = train_X.reshape((train_X.shape[0], timesteps, n_features))
     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
-    # design network
     model = Sequential()
     model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
     model.add(Dense(1))
     model.compile(loss='mae', optimizer='adam')
-    # fit network
+
     history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
-    # plot history
+
+    pyplot.plot(history.history['loss'], label='train')
+    pyplot.plot(history.history['val_loss'], label='test')
+    pyplot.legend()
+    pyplot.show()
+
+    return
+
+def state_action_state_n_timestep(info, actions, states, timesteps):
+
+    n_features = 9
+    n_obs = timesteps * n_features
+
+    # data = DataFrame(info)
+    data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
+    label = DataFrame(states)
+
+    cols = []
+    for i in range(timesteps, 0, -1):
+        cols.append(data.shift(i))
+
+    for i in range(0,1):
+        cols.append(label.shift(-i))
+
+    data = concat(cols, axis=1)
+    data.dropna(inplace=True)
+    data = data.values
+
+    # split to train & test
+    train_percent = 0.9
+    m = len(data)
+    point = int(train_percent * m) 
+    train = data[:point, :]
+    test = data[point:, :]
+
+    train_X = train[:, :n_obs]
+    test_X = test[:, :n_obs]
+
+    train_y = train[:, -1]
+    test_y = test[:, -1]
+
+    train_X = train_X.reshape((train_X.shape[0], timesteps, n_features))
+    test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
+
+    model = Sequential()
+    model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
+    model.add(Dense(1))
+    model.compile(loss='mae', optimizer='adam')
+
+    history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
     pyplot.legend()
@@ -202,4 +244,4 @@ def state_state_n_timestep(info, states):
     return
 
 
-state_state_n_timestep(info, states)
+state_action_state_n_timestep(info, actions, states, timesteps = 10)
