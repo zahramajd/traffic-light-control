@@ -234,14 +234,10 @@ def state_action_state_n_timestep(info, actions, states, timesteps):
 
     history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
-    # pyplot.plot(history.history['loss'], label='train')
-    # pyplot.plot(history.history['val_loss'], label='test')
-    # pyplot.legend()
-    # pyplot.show()
-
-    save_model(model, name='state_action_state')
-    x=load_saved_model(name='state_action_state')
-    print(x)
+    pyplot.plot(history.history['loss'], label='train')
+    pyplot.plot(history.history['val_loss'], label='test')
+    pyplot.legend()
+    pyplot.show()
 
     return
 
