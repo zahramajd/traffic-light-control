@@ -190,7 +190,7 @@ def state_state_n_timestep(info, states, timesteps):
     pyplot.legend()
     pyplot.show()
 
-    return
+    return model
 
 def state_action_state_n_timestep(info, actions, states, timesteps):
 
@@ -232,14 +232,14 @@ def state_action_state_n_timestep(info, actions, states, timesteps):
     model.add(Dense(1))
     model.compile(loss='mae', optimizer='adam')
 
-    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
     pyplot.legend()
     pyplot.show()
 
-    return
+    return model
 
 def state_action_state_action_n_timestep(info, actions, states, timesteps):
     
@@ -288,7 +288,7 @@ def state_action_state_action_n_timestep(info, actions, states, timesteps):
     pyplot.legend()
     pyplot.show()
 
-    return
+    return model
 
 def save_model(model, name):
     model_json = model.to_json()
@@ -320,4 +320,9 @@ def save_predicted_result():
 raw_info, states, phases = load_data()
 actions = convert_actions(phases)
 info = normalize(raw_info)
-state_action_state_n_timestep(info, actions, states, timesteps = 10)
+
+
+model = state_action_state_n_timestep(info, actions, states, timesteps = 10)
+
+save_model(model, name='x')
+loaded_model = load_model(name='x')
