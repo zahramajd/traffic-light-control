@@ -14,37 +14,21 @@ import glob
 import os
 
 
-
 #TODO: find best n, neuron
-
-#TODO: predicted value of 1&2
-#TODO: run & save 3 model
-#TODO: prepare test case to run on model
-
 
 def load_data(path):
 
     data = pd.DataFrame()
     files = glob.glob(path+'/*.csv')
-    # for file in files:
-    #     d = pd.read_csv(file)
-    #     print(d.shape)
-    #     print(data.shape)
-    #     data = pd.concat([data,d])
-    #     print(data.shape)
-    #     print('--------------')
 
-    # list_ = []
-    # for file in files:
-    #     print(file)
-    #     df = pd.read_csv(file)
-    #     print(df.shape)
-    #     list_.append(df)
+    dflist = []
+    for file in files:
+        df = pd.read_csv(file, header=None)
+        dflist.append(df)
 
-    # data = pd.concat(list_, axis = 0)
-    # print(data.shape)
+    data = pd.concat(dflist, axis = 0)
 
-    data = pd.read_csv("./DataSet-1/dataset536.csv")
+    # data = pd.read_csv("./DataSet-1/dataset536.csv")
     info = data.iloc[:,0:8]
     states = data.iloc[:,8:9]
     phases = data.iloc[:,9:13]
@@ -56,6 +40,8 @@ def convert_actions(phases):
     actions = pd.DataFrame(columns=['A'])
     
     for index, row in phases.iterrows():
+
+        actions.loc[index] = [23]
 
         if(np.array_equal([33, 33, 13, 13],row.values)):
             actions.loc[index] = [0]
@@ -125,7 +111,6 @@ def convert_actions(phases):
 
         if(np.array_equal([13, 13, 13, 53],row.values)):
             actions.loc[index] = [22]
-
 
     return actions
 
@@ -208,12 +193,12 @@ def state_state_n_timestep(info, states, timesteps):
     model.add(Dense(1))
     model.compile(loss='mae', optimizer='adam')
 
-    history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
     pyplot.legend()
-    pyplot.show()
+    # pyplot.show()
 
     return model
 
@@ -257,12 +242,15 @@ def state_action_state_n_timestep(info, actions, states, timesteps):
     model.add(Dense(1))
     model.compile(loss='mae', optimizer='adam')
 
-    history = model.fit(train_X, train_y, epochs=50, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
     pyplot.legend()
-    pyplot.show()
+    # pyplot.show()
+
+    # yhat = model.predict(test_X)
+    
 
     return model
 
@@ -313,7 +301,10 @@ def state_action_state_action_n_timestep(info, actions, states, timesteps):
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
     pyplot.legend()
-    pyplot.show()
+    # pyplot.show()
+    
+    # yhat = model.predict(test_X)
+    # print(yhat)
 
     return model
 
@@ -348,13 +339,94 @@ def save_predicted_result():
     return
 
 
-# load_data(path='./DataSet-1')
 raw_info, states, phases = load_data(path='./DataSet-1')
 actions = convert_actions(phases)
 info = normalize(raw_info)
 
+model_num = 3
+timesteps = 5
 
-model = state_action_state_action_n_timestep(info, actions, states, timesteps = 10)
+# save models
+if(model_num == 1):
+    model = state_state_n_timestep(info, states, timesteps=timesteps)
+    save_model(model, name='state_state')
 
-# save_model(model, name='x')
-# loaded_model = load_model(name='x')
+if(model_num == 2):
+    model = state_action_state_n_timestep(info, actions, states, timesteps=timesteps)
+    save_model(model, name='state_action_state')
+
+if(model_num == 3):
+    model = state_action_state_action_n_timestep(info, actions, states, timesteps=timesteps)
+    save_model(model, name='state_action_state_action')
+
+
+
+# # run models on test data
+# raw_info, states, phases = load_data(path='./DataSet-2')
+# actions = convert_actions(phases)
+# info = normalize(raw_info)
+
+
+# if(model_num == 1):
+
+#     n_features = 8
+#     n_obs = timesteps * n_features
+
+#     data = DataFrame(info)
+#     cols = []
+#     for i in range(timesteps, 0, -1):
+#         cols.append(data.shift(i))
+
+#     data = concat(cols, axis=1)
+#     data.dropna(inplace=True)
+#     data = data.values
+
+#     test_X = data[:, :n_obs]
+#     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
+
+
+#     loaded_model = load_saved_model(name='state_state')
+#     yhat = model.predict(test_X)
+#     print(yhat)
+#     np.savetxt("state_state.csv", yhat, delimiter=",")
+
+# if(model_num == 2):
+
+#     n_features = 9
+#     n_obs = timesteps * n_features
+
+#     data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
+#     cols = []
+#     for i in range(timesteps, 0, -1):
+#         cols.append(data.shift(i))
+
+#     data = concat(cols, axis=1)
+#     data.dropna(inplace=True)
+#     data = data.values
+
+#     test_X = data[:, :n_obs]
+#     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
+
+#     loaded_model = load_saved_model(name='state_action_state')
+#     yhat = model.predict(test_X)
+#     np.savetxt("state_action_state.csv", yhat, delimiter=",")
+
+# if(model_num == 3):
+#     n_features = 9
+#     n_obs = timesteps * n_features
+
+#     data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
+#     cols = []
+#     for i in range(timesteps, 0, -1):
+#         cols.append(data.shift(i))
+
+#     data = concat(cols, axis=1)
+#     data.dropna(inplace=True)
+#     data = data.values
+
+#     test_X = data[:, :n_obs]
+#     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
+
+#     loaded_model = load_saved_model(name='state_action_state_action')
+#     yhat = model.predict(test_X)
+#     np.savetxt("state_action_state_action.csv", yhat, delimiter=",")
