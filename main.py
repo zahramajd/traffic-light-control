@@ -12,23 +12,22 @@ from tensorflow.keras.models import model_from_json
 from tensorflow.keras.models import load_model
 import glob
 import os
+from tensorflow.keras.utils import to_categorical
 
-
-#TODO: find best n, neuron
 
 def load_data(path):
 
-    data = pd.DataFrame()
-    files = glob.glob(path+'/*.csv')
+    # data = pd.DataFrame()
+    # files = glob.glob(path+'/*.csv')
 
-    dflist = []
-    for file in files:
-        df = pd.read_csv(file, header=None)
-        dflist.append(df)
+    # dflist = []
+    # for file in files:
+    #     df = pd.read_csv(file, header=None)
+    #     dflist.append(df)
 
-    data = pd.concat(dflist, axis = 0)
+    # data = pd.concat([dflist[0],dflist[1]], axis = 0)
 
-    # data = pd.read_csv("./DataSet-1/dataset536.csv")
+    data = pd.read_csv("./DataSet-1/dataset536.csv")
     info = data.iloc[:,0:8]
     states = data.iloc[:,8:9]
     phases = data.iloc[:,9:13]
@@ -40,8 +39,6 @@ def convert_actions(phases):
     actions = pd.DataFrame(columns=['A'])
     
     for index, row in phases.iterrows():
-
-        actions.loc[index] = [23]
 
         if(np.array_equal([33, 33, 13, 13],row.values)):
             actions.loc[index] = [0]
@@ -188,17 +185,30 @@ def state_state_n_timestep(info, states, timesteps):
     train_X = train_X.reshape((train_X.shape[0], timesteps, n_features))
     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
-    model = Sequential()
-    model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-    model.add(Dense(1))
-    model.compile(loss='mae', optimizer='adam')
+    # model = Sequential()
+    # model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
+    # model.add(Dense(1))
+    # model.compile(loss='mae', optimizer='adam')
 
-    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    # history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
-    pyplot.plot(history.history['loss'], label='train')
-    pyplot.plot(history.history['val_loss'], label='test')
-    pyplot.legend()
+    # pyplot.plot(history.history['loss'], label='train')
+    # pyplot.plot(history.history['val_loss'], label='test')
+    # pyplot.legend()
     # pyplot.show()
+
+    model = Sequential()
+    model.add(LSTM(25, input_shape=(train_X.shape[1], train_X.shape[2])))
+    train_y = to_categorical(train_y)
+    test_y = to_categorical(test_y)
+    model.add(Dense(50, activation='relu'))
+    model.add(Dense(24, activation='softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+	# fit network
+    model.fit(train_X, train_y, epochs=100, batch_size=72, verbose=0)
+    _, accuracy = model.evaluate(test_X, test_y, batch_size=72, verbose=0)
+
+    print(accuracy)
 
     return model
 
@@ -237,21 +247,31 @@ def state_action_state_n_timestep(info, actions, states, timesteps):
     train_X = train_X.reshape((train_X.shape[0], timesteps, n_features))
     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
-    model = Sequential()
-    model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-    model.add(Dense(1))
-    model.compile(loss='mae', optimizer='adam')
+    # model = Sequential()
+    # model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
+    # model.add(Dense(1))
+    # model.compile(loss='mae', optimizer='adam')
 
-    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    # history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
-    pyplot.plot(history.history['loss'], label='train')
-    pyplot.plot(history.history['val_loss'], label='test')
-    pyplot.legend()
+    # pyplot.plot(history.history['loss'], label='train')
+    # pyplot.plot(history.history['val_loss'], label='test')
+    # pyplot.legend()
     # pyplot.show()
 
-    # yhat = model.predict(test_X)
-    
 
+    model = Sequential()
+    model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
+    train_y = to_categorical(train_y)
+    test_y = to_categorical(test_y)
+    model.add(Dense(50, activation='relu'))
+    model.add(Dense(24, activation='softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+	# fit network
+    history =model.fit(train_X, train_y, epochs=70, batch_size=72, verbose=0)
+    _, accuracy = model.evaluate(test_X, test_y, batch_size=72, verbose=0)
+
+    print(accuracy)
     return model
 
 def state_action_state_action_n_timestep(info, actions, states, timesteps):
@@ -295,17 +315,13 @@ def state_action_state_action_n_timestep(info, actions, states, timesteps):
     model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
     model.add(Dense(2))
     model.compile(loss='mae', optimizer='adam')
-
     history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
     pyplot.legend()
-    # pyplot.show()
+    pyplot.show()
     
-    # yhat = model.predict(test_X)
-    # print(yhat)
-
     return model
 
 def save_model(model, name):
@@ -331,20 +347,14 @@ def load_saved_model(name):
 
     return load_model
 
-def save_predicted_result():
-
-    yhat = model.predict(test_X)
-    np.savetxt("foo.csv", yhat, delimiter=",")
-
-    return
 
 
 raw_info, states, phases = load_data(path='./DataSet-1')
 actions = convert_actions(phases)
 info = normalize(raw_info)
 
-model_num = 3
-timesteps = 5
+model_num = 1
+timesteps = 10
 
 # save models
 if(model_num == 1):
