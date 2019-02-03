@@ -185,30 +185,30 @@ def state_state_n_timestep(info, states, timesteps):
     train_X = train_X.reshape((train_X.shape[0], timesteps, n_features))
     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
+    model = Sequential()
+    model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
+    model.add(Dense(1))
+    model.compile(loss='mae', optimizer='adam')
+
+    history = model.fit(train_X, train_y, epochs=100, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+
+    pyplot.plot(history.history['loss'], label='train')
+    pyplot.plot(history.history['val_loss'], label='test')
+    pyplot.legend()
+    pyplot.show()
+
     # model = Sequential()
     # model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-    # model.add(Dense(1))
-    # model.compile(loss='mae', optimizer='adam')
+    # train_y = to_categorical(train_y)
+    # test_y = to_categorical(test_y)
+    # model.add(Dense(50, activation='relu'))
+    # model.add(Dense(24, activation='softmax'))
+    # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+	# # fit network
+    # model.fit(train_X, train_y, epochs=100, batch_size=72, verbose=0)
+    # _, accuracy = model.evaluate(test_X, test_y, batch_size=72, verbose=0)
 
-    # history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
-
-    # pyplot.plot(history.history['loss'], label='train')
-    # pyplot.plot(history.history['val_loss'], label='test')
-    # pyplot.legend()
-    # pyplot.show()
-
-    model = Sequential()
-    model.add(LSTM(25, input_shape=(train_X.shape[1], train_X.shape[2])))
-    train_y = to_categorical(train_y)
-    test_y = to_categorical(test_y)
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(24, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-	# fit network
-    model.fit(train_X, train_y, epochs=100, batch_size=72, verbose=0)
-    _, accuracy = model.evaluate(test_X, test_y, batch_size=72, verbose=0)
-
-    print(accuracy)
+    # print(accuracy)
 
     return model
 
@@ -247,31 +247,31 @@ def state_action_state_n_timestep(info, actions, states, timesteps):
     train_X = train_X.reshape((train_X.shape[0], timesteps, n_features))
     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
-    # model = Sequential()
-    # model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-    # model.add(Dense(1))
-    # model.compile(loss='mae', optimizer='adam')
-
-    # history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
-
-    # pyplot.plot(history.history['loss'], label='train')
-    # pyplot.plot(history.history['val_loss'], label='test')
-    # pyplot.legend()
-    # pyplot.show()
-
-
     model = Sequential()
     model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
-    train_y = to_categorical(train_y)
-    test_y = to_categorical(test_y)
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(24, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-	# fit network
-    history =model.fit(train_X, train_y, epochs=70, batch_size=72, verbose=0)
-    _, accuracy = model.evaluate(test_X, test_y, batch_size=72, verbose=0)
+    model.add(Dense(1))
+    model.compile(loss='mae', optimizer='adam')
 
-    print(accuracy)
+    history = model.fit(train_X, train_y, epochs=100, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+
+    pyplot.plot(history.history['loss'], label='train')
+    pyplot.plot(history.history['val_loss'], label='test')
+    pyplot.legend()
+    pyplot.show()
+
+
+    # model = Sequential()
+    # model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
+    # train_y = to_categorical(train_y)
+    # test_y = to_categorical(test_y)
+    # model.add(Dense(50, activation='relu'))
+    # model.add(Dense(24, activation='softmax'))
+    # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+	# # fit network
+    # history =model.fit(train_X, train_y, epochs=70, batch_size=72, verbose=0)
+    # _, accuracy = model.evaluate(test_X, test_y, batch_size=72, verbose=0)
+    # print(accuracy)
+
     return model
 
 def state_action_state_action_n_timestep(info, actions, states, timesteps):
@@ -315,7 +315,7 @@ def state_action_state_action_n_timestep(info, actions, states, timesteps):
     model.add(LSTM(50, input_shape=(train_X.shape[1], train_X.shape[2])))
     model.add(Dense(2))
     model.compile(loss='mae', optimizer='adam')
-    history = model.fit(train_X, train_y, epochs=10, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
+    history = model.fit(train_X, train_y, epochs=100, batch_size=72, validation_data=(test_X, test_y), verbose=2, shuffle=False)
 
     pyplot.plot(history.history['loss'], label='train')
     pyplot.plot(history.history['val_loss'], label='test')
@@ -353,8 +353,8 @@ raw_info, states, phases = load_data(path='./DataSet-1')
 actions = convert_actions(phases)
 info = normalize(raw_info)
 
-model_num = 1
-timesteps = 10
+model_num = 3
+timesteps = 5
 
 # save models
 if(model_num == 1):
@@ -371,72 +371,72 @@ if(model_num == 3):
 
 
 
-# # run models on test data
-# raw_info, states, phases = load_data(path='./DataSet-2')
-# actions = convert_actions(phases)
-# info = normalize(raw_info)
+# run models on test data
+raw_info, states, phases = load_data(path='./DataSet-2')
+actions = convert_actions(phases)
+info = normalize(raw_info)
 
 
-# if(model_num == 1):
+if(model_num == 1):
 
-#     n_features = 8
-#     n_obs = timesteps * n_features
+    n_features = 8
+    n_obs = timesteps * n_features
 
-#     data = DataFrame(info)
-#     cols = []
-#     for i in range(timesteps, 0, -1):
-#         cols.append(data.shift(i))
+    data = DataFrame(info)
+    cols = []
+    for i in range(timesteps, 0, -1):
+        cols.append(data.shift(i))
 
-#     data = concat(cols, axis=1)
-#     data.dropna(inplace=True)
-#     data = data.values
+    data = concat(cols, axis=1)
+    data.dropna(inplace=True)
+    data = data.values
 
-#     test_X = data[:, :n_obs]
-#     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
+    test_X = data[:, :n_obs]
+    test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
 
-#     loaded_model = load_saved_model(name='state_state')
-#     yhat = model.predict(test_X)
-#     print(yhat)
-#     np.savetxt("state_state.csv", yhat, delimiter=",")
+    loaded_model = load_saved_model(name='state_state')
+    yhat = model.predict(test_X)
+    print(yhat)
+    np.savetxt("state_state.csv", yhat, delimiter=",")
 
-# if(model_num == 2):
+if(model_num == 2):
 
-#     n_features = 9
-#     n_obs = timesteps * n_features
+    n_features = 9
+    n_obs = timesteps * n_features
 
-#     data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
-#     cols = []
-#     for i in range(timesteps, 0, -1):
-#         cols.append(data.shift(i))
+    data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
+    cols = []
+    for i in range(timesteps, 0, -1):
+        cols.append(data.shift(i))
 
-#     data = concat(cols, axis=1)
-#     data.dropna(inplace=True)
-#     data = data.values
+    data = concat(cols, axis=1)
+    data.dropna(inplace=True)
+    data = data.values
 
-#     test_X = data[:, :n_obs]
-#     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
+    test_X = data[:, :n_obs]
+    test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
-#     loaded_model = load_saved_model(name='state_action_state')
-#     yhat = model.predict(test_X)
-#     np.savetxt("state_action_state.csv", yhat, delimiter=",")
+    loaded_model = load_saved_model(name='state_action_state')
+    yhat = model.predict(test_X)
+    np.savetxt("state_action_state.csv", yhat, delimiter=",")
 
-# if(model_num == 3):
-#     n_features = 9
-#     n_obs = timesteps * n_features
+if(model_num == 3):
+    n_features = 9
+    n_obs = timesteps * n_features
 
-#     data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
-#     cols = []
-#     for i in range(timesteps, 0, -1):
-#         cols.append(data.shift(i))
+    data = pd.concat([DataFrame(info), DataFrame(actions)], axis=1)
+    cols = []
+    for i in range(timesteps, 0, -1):
+        cols.append(data.shift(i))
 
-#     data = concat(cols, axis=1)
-#     data.dropna(inplace=True)
-#     data = data.values
+    data = concat(cols, axis=1)
+    data.dropna(inplace=True)
+    data = data.values
 
-#     test_X = data[:, :n_obs]
-#     test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
+    test_X = data[:, :n_obs]
+    test_X = test_X.reshape((test_X.shape[0], timesteps, n_features))
 
-#     loaded_model = load_saved_model(name='state_action_state_action')
-#     yhat = model.predict(test_X)
-#     np.savetxt("state_action_state_action.csv", yhat, delimiter=",")
+    loaded_model = load_saved_model(name='state_action_state_action')
+    yhat = model.predict(test_X)
+    np.savetxt("state_action_state_action.csv", yhat, delimiter=",")
